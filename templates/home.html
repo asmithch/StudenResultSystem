@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Result System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Student Result Management</h1>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('students')">All Students</button>
+            <button class="nav-tab" onclick="showTab('rankings')">Class-wise Rankings</button>
+            <button class="nav-tab" onclick="showTab('subject-rankings')">Subject-wise Rankings</button>
+            <button class="nav-tab" onclick="showTab('grades')">Grade Sheets</button>
+            <button class="nav-tab" onclick="showTab('add-student')">Add Student</button>
+            <button class="nav-tab" onclick="showTab('add-grades')">Add Grades</button>
+        </div>
+
+        <!-- All Students Tab -->
+        <div id="students" class="tab-content active">
+            <h2>All Students</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>DOB</th>
+                        <th>Class</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Total Marks</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student[0] }}</td>
+                        <td>{{ student[1] }}</td>
+                        <td>{{ student[2] }}</td>
+                        <td>{{ student[3] }}</td>
+                        <td>{{ student[4] }}</td>
+                        <td>{{ student[5] }}</td>
+                        <td>{{ student[6] or 'N/A' }}</td>
+                        <td><span class="grade-value grade-{{ student[7] or 'N/A' }}">{{ student[7] or 'N/A' }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Class-wise Rankings Tab -->
+        <div id="rankings" class="tab-content">
+            <h2>Class-wise Rankings</h2>
+            {% for class_name, students in class_rankings.items() %}
+            <h3>Class {{ class_name }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Total Marks</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ student[1] }}</td>
+                        <td>{{ student[6] }}</td>
+                        <td>{{ student[7] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endfor %}
+        </div>
+
+        <!-- Subject-wise Rankings Tab -->
+        <!-- Subject-wise Rankings -->
+<div id="subject-rankings" class="tab-content">
+    <h2>Subject-wise Rankings</h2>
+    {% for subject, rankings in subject_rankings.items() %}
+        <h3>{{ subject }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in rankings %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ student[0] }}</td>
+                    <td>{{ student[1] }}</td>
+                    <td>{{ student[2] }}</td>
+                    <td>{{ student[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+</div>
+
+
+        <!-- Grade Sheets Tab -->
+        <div id="grades" class="tab-content">
+            <h2>Detailed Grade Sheets</h2>
+            {% for student in student_grades %}
+            <div class="student-card">
+                <div class="student-header">
+                    <h3 class="student-name">{{ student[1] }}</h3>
+                    <div class="student-details">
+                        ID: {{ student[0] }} | Class: {{ student[3] }} | Email: {{ student[4] }}
+                    </div>
+                </div>
+                <div class="grade-sheet">
+                    <h4>Subject Grades</h4>
+                    {% for grade in student_subject_grades %}
+                        {% if grade[1] == student[0] %}
+                        <div class="subject-grade">
+                            <span class="subject-name">{{ grade[2] }}</span>
+                            <span class="grade-value grade-{{ grade[4] }}">{{ grade[3] }} - {{ grade[4] }}</span>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="total-marks">
+                        Total Marks: {{ student[6] or 'N/A' }} | Overall Grade: {{ student[7] or 'Not Graded' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Add Student Tab -->
+        <div id="add-student" class="tab-content">
+            <h2>Add New Student</h2>
+            <form method="post" action="/add_student">
+                <input type="text" name="name" placeholder="Full Name" required>
+                <input type="date" name="dob" required>
+                <input type="text" name="class" placeholder="Class" required>
+                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="text" name="phone" placeholder="Phone Number" required>
+                <input type="submit" value="Add Student">
+            </form>
+        </div>
+
+        <!-- Add Grades Tab -->
+        <div id="add-grades" class="tab-content">
+            <h2>Add Student Grades</h2>
+            <form method="post" action="/add_grades">
+                <select name="student_id" required>
+                    <option value="">Select Student</option>
+                    {% for student in students %}
+                    <option value="{{ student[0] }}">{{ student[1] }} ({{ student[3] }})</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="subject" placeholder="Subject Name" required>
+                <input type="number" name="marks" placeholder="Marks" min="0" max="100" required>
+                <select name="grade" required>
+                    <option value="">Select Grade</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="F">F</option>
+                </select>
+                <input type="submit" value="Add Grade">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
